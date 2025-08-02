@@ -51,6 +51,25 @@
             border: none;
             border-radius: 0.5rem;
         }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .btn-group .btn {
+            margin-right: 2px;
+        }
+        .btn-group .btn:last-child {
+            margin-right: 0;
+        }
+        @media (max-width: 768px) {
+            .btn-group {
+                display: flex;
+                flex-direction: column;
+            }
+            .btn-group .btn {
+                margin-bottom: 2px;
+                margin-right: 0;
+            }
+        }
     </style>
 </head>
 <body th:fragment="body">

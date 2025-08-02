@@ -23,6 +23,13 @@
                 </div>
             </div>
 
+            <!-- Search Results Message -->
+            <div th:if="${searchMessage}" class="alert alert-info alert-dismissible fade show mb-3" role="alert">
+                <i class="fas fa-search me-2"></i>
+                <span th:text="${searchMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
             <!-- Search Form -->
             <div class="card mb-4">
                 <div class="card-header">
@@ -32,7 +39,7 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    <form th:action="@{/employees/search}" method="get" class="row g-3">
+                    <form th:action="@{/employees/search}" method="get" class="row g-3" id="searchForm">
                         <div class="col-md-3">
                             <label for="keyword" class="form-label">Search Keyword</label>
                             <input type="text" class="form-control" id="keyword" name="keyword" 
@@ -82,14 +89,19 @@
                             </div>
                         </div>
                         <div class="col-12">
-                            <button type="submit" class="btn btn-primary me-2">
+                            <button type="submit" class="btn btn-primary me-2" id="searchBtn">
                                 <i class="fas fa-search me-2"></i>
                                 Search
+                                <span class="spinner-border spinner-border-sm ms-2 d-none" id="searchSpinner"></span>
                             </button>
-                            <a href="/employees" class="btn btn-secondary">
+                            <a href="/employees" class="btn btn-secondary" id="clearBtn">
                                 <i class="fas fa-times me-2"></i>
                                 Clear
                             </a>
+                            <button type="button" class="btn btn-outline-info ms-2" onclick="exportToCSV()">
+                                <i class="fas fa-download me-2"></i>
+                                Export
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -147,11 +159,13 @@
                                                class="btn btn-sm btn-outline-warning" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                    title="Delete" 
-                                                    th:onclick="'deleteEmployee(' + ${employee.id} + ', \'' + ${employee.fullName} + '\')'">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                                                                         <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                     title="Delete" 
+                                                     th:data-employee-id="${employee.id}"
+                                                     th:data-employee-name="${employee.fullName}"
+                                                     onclick="confirmDelete(this.dataset.employeeId, this.dataset.employeeName)">
+                                                 <i class="fas fa-trash"></i>
+                                             </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -203,6 +217,80 @@
                 document.getElementById('employeeName').textContent = name;
                 document.getElementById('deleteForm').action = '/employees/' + id + '/delete';
                 new bootstrap.Modal(document.getElementById('deleteModal')).show();
+            }
+            
+            // Auto-submit search form when filters change
+            document.addEventListener('DOMContentLoaded', function() {
+                const searchForm = document.getElementById('searchForm');
+                const searchBtn = document.getElementById('searchBtn');
+                const searchSpinner = document.getElementById('searchSpinner');
+                const filters = searchForm.querySelectorAll('select, input[type="number"]');
+                
+                // Show loading spinner on form submit
+                searchForm.addEventListener('submit', function() {
+                    searchSpinner.classList.remove('d-none');
+                    searchBtn.disabled = true;
+                });
+                
+                filters.forEach(filter => {
+                    filter.addEventListener('change', function() {
+                        // Add a small delay to avoid too many requests
+                        setTimeout(() => {
+                            searchForm.submit();
+                        }, 300);
+                    });
+                });
+                
+                // Clear form functionality
+                document.getElementById('clearBtn').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Clear all form fields
+                    searchForm.reset();
+                    // Submit the form to show all employees
+                    searchForm.submit();
+                });
+            });
+            
+            // Confirm delete with better UX
+            function confirmDelete(id, name) {
+                if (confirm('Are you sure you want to delete employee "' + name + '"?\n\nThis action cannot be undone.')) {
+                    // Create a form and submit it
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/employees/' + id + '/delete';
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            }
+            
+            // Export to CSV function
+            function exportToCSV() {
+                const table = document.querySelector('table');
+                const rows = table.querySelectorAll('tbody tr');
+                let csv = 'ID,Name,Email,Department,Position,Salary,Status\n';
+                
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length > 0) {
+                        const id = cells[0].textContent.trim();
+                        const name = cells[1].textContent.trim();
+                        const email = cells[2].textContent.trim();
+                        const department = cells[3].textContent.trim();
+                        const position = cells[4].textContent.trim();
+                        const salary = cells[5].textContent.trim();
+                        const status = cells[6].textContent.trim();
+                        
+                        csv += `"${id}","${name}","${email}","${department}","${position}","${salary}","${status}"\n`;
+                    }
+                });
+                
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'employees.csv';
+                a.click();
+                window.URL.revokeObjectURL(url);
             }
         </script>
     </div>

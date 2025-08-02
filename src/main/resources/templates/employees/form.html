@@ -177,6 +177,26 @@
                     e.target.value = value.toFixed(2);
                 }
             });
+            
+            // Real-time validation
+            document.getElementById('email').addEventListener('blur', function(e) {
+                var email = e.target.value;
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (email && !emailRegex.test(email)) {
+                    e.target.classList.add('is-invalid');
+                } else {
+                    e.target.classList.remove('is-invalid');
+                }
+            });
+            
+            // Prevent form submission if there are validation errors
+            document.querySelector('form').addEventListener('submit', function(e) {
+                var invalidFields = document.querySelectorAll('.is-invalid');
+                if (invalidFields.length > 0) {
+                    e.preventDefault();
+                    alert('Please fix the validation errors before submitting.');
+                }
+            });
         </script>
     </div>
 </body>

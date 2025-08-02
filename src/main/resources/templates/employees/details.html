@@ -163,7 +163,9 @@
                                     Edit Employee
                                 </a>
                                 <button type="button" class="btn btn-danger" 
-                                        th:onclick="'deleteEmployee(' + ${employee.id} + ', \'' + ${employee.fullName} + '\')'">
+                                        th:data-employee-id="${employee.id}"
+                                        th:data-employee-name="${employee.fullName}"
+                                        onclick="confirmDelete(this.dataset.employeeId, this.dataset.employeeName)">
                                     <i class="fas fa-trash me-2"></i>
                                     Delete Employee
                                 </button>
@@ -209,34 +211,20 @@
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirm Delete</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete employee <strong id="employeeName"></strong>?</p>
-                    <p class="text-danger">This action cannot be undone.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form id="deleteForm" method="post" style="display: inline;">
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <div th:replace="~{layout :: scripts}">
         <script th:fragment="scripts">
-            function deleteEmployee(id, name) {
-                document.getElementById('employeeName').textContent = name;
-                document.getElementById('deleteForm').action = '/employees/' + id + '/delete';
-                new bootstrap.Modal(document.getElementById('deleteModal')).show();
+            // Confirm delete with better UX
+            function confirmDelete(id, name) {
+                if (confirm('Are you sure you want to delete employee "' + name + '"?\n\nThis action cannot be undone.')) {
+                    // Create a form and submit it
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/employees/' + id + '/delete';
+                    document.body.appendChild(form);
+                    form.submit();
+                }
             }
         </script>
     </div>

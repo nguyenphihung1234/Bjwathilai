@@ -139,22 +139,39 @@ public class EmployeeController {
                                  Model model) {
         List<Employee> employees;
         
+        // Build search criteria
+        boolean hasSearchCriteria = false;
+        
         if (keyword != null && !keyword.trim().isEmpty()) {
-            employees = employeeService.searchEmployees(keyword);
+            employees = employeeService.searchEmployees(keyword.trim());
+            hasSearchCriteria = true;
         } else if (department != null && !department.trim().isEmpty()) {
             if (minSalary != null && maxSalary != null) {
-                employees = employeeService.getEmployeesByDepartmentAndSalaryRange(department, minSalary, maxSalary);
+                employees = employeeService.getEmployeesByDepartmentAndSalaryRange(department.trim(), minSalary, maxSalary);
             } else {
-                employees = employeeService.getEmployeesByDepartment(department);
+                employees = employeeService.getEmployeesByDepartment(department.trim());
             }
+            hasSearchCriteria = true;
         } else if (position != null && !position.trim().isEmpty()) {
-            employees = employeeService.getEmployeesByPosition(position);
+            employees = employeeService.getEmployeesByPosition(position.trim());
+            hasSearchCriteria = true;
         } else if (status != null && !status.trim().isEmpty()) {
-            employees = employeeService.getEmployeesByStatus(EmployeeStatus.valueOf(status));
+            try {
+                employees = employeeService.getEmployeesByStatus(EmployeeStatus.valueOf(status.trim()));
+                hasSearchCriteria = true;
+            } catch (IllegalArgumentException e) {
+                employees = employeeService.getAllEmployees();
+            }
         } else if (minSalary != null && maxSalary != null) {
             employees = employeeService.getEmployeesBySalaryRange(minSalary, maxSalary);
+            hasSearchCriteria = true;
         } else {
             employees = employeeService.getAllEmployees();
+        }
+        
+        // Add search results message
+        if (hasSearchCriteria) {
+            model.addAttribute("searchMessage", "Found " + employees.size() + " employee(s)");
         }
         
         model.addAttribute("employees", employees);

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
@@ -28,9 +29,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             String firstName, String lastName);
     
     // Find by salary range
-    List<Employee> findBySalaryBetween(java.math.BigDecimal minSalary, java.math.BigDecimal maxSalary);
+    List<Employee> findBySalaryBetween(BigDecimal minSalary, BigDecimal maxSalary);
     
-    // Custom search query
+    // Custom search query for keyword search
     @Query("SELECT e FROM Employee e WHERE " +
            "LOWER(e.firstName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(e.lastName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
@@ -43,8 +44,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query("SELECT e FROM Employee e WHERE e.department = :department AND e.salary BETWEEN :minSalary AND :maxSalary")
     List<Employee> findByDepartmentAndSalaryRange(
             @Param("department") String department,
-            @Param("minSalary") java.math.BigDecimal minSalary,
-            @Param("maxSalary") java.math.BigDecimal maxSalary);
+            @Param("minSalary") BigDecimal minSalary,
+            @Param("maxSalary") BigDecimal maxSalary);
     
     // Count employees by department
     long countByDepartment(String department);
